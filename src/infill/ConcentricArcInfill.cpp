@@ -114,12 +114,40 @@ void ConcentricArcInfill::generateConcentricArcInfill(const Polygons& in_outline
                 }
                 else if (x_squared == 0)
                 {
+                    // horizontal line is tangent to scan arc => (x, y) = (0, r)
                     int x = 0;
+
+                    // is the intersection actually on the line segment?
                     if (min(p0_horiz.X, p1_horiz.X) <= x && max(p0_horiz.X, p1_horiz.X) >= x)
                     {
-                        double theta = atan2(y_prime, x);
+                        Point intersection_orig = horiz_matrix.unapply(Point(x, r));
+                        double theta = atan2(intersection_orig.Y, intersection_orig.X) + M_PI;
                         cut_list[scanarc_idx].push_back(theta);
-                        Point scanarc_linesegment_intersection(x, y_prime);
+                        crossings_per_scanline[scanarc_idx].emplace_back(intersection_orig, poly_idx, point_idx);
+                    }
+                }
+                else if (x_squared > 0)
+                {
+                    // horizontal line intersects scan arc in two places: +/- x
+                    int pos_x = sqrt(x_squared);
+                    int neg_x = -1 * pos_x;
+
+                    int p0_min_x = min(p0_horiz.X, p1_horiz.X);
+                    int p0_max_x = max(p0_horiz.X, p1_horiz.X);
+
+                    if ((p0_min_x <= pos_x) && (p0_max_x >= x))
+                    {
+                        Point intersection_orig = horiz_matrix.unapply(Point(pos_x, r));
+                        double theta = atan2(intersection_orig.Y, intersection_orig.X) + M_PI;
+                        cut_list[scanarc_idx].push_back(theta);
+                        crossings_per_scanline[scanarc_idx].emplace_back(intersection_orig, poly_idx, point_idx);
+                    }
+                    if ((p0_min_x <= neg_x) && (p0_max_x >= neg_x))
+                    {
+                        Point intersection_orig = horiz_matrix.unapply(Point(neg_x, r));
+                        double theta = atan2(intersection_orig.Y, intersection_orig.X) + M_PI;
+                        cut_list[scanarc_idx].push_back(theta);
+                        crossings_per_scanline[scanarc_idx].emplace_back(intersection_orig, poly_idx, point_idx);
                     }
                 }
             }
