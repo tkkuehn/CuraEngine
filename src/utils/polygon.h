@@ -1142,6 +1142,17 @@ public:
             }
         }
     }
+
+    void translate(const Point translation)
+    {
+        for(unsigned int i=0; i<paths.size(); i++)
+        {
+            for(unsigned int j=0; j<paths[i].size(); j++)
+            {
+                paths[i][j] += translation;
+            }
+        }
+    }
 };
 
 /*!
