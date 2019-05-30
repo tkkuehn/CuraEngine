@@ -333,6 +333,10 @@ template<> EFillMethod Settings::get<EFillMethod>(const std::string& key) const
     {
         return EFillMethod::GYROID;
     }
+    else if (value == "concentric_arc")
+    {
+        return EFillMethod::CONCENTRIC_ARC;
+    }
     else //Default.
     {
         return EFillMethod::NONE;
