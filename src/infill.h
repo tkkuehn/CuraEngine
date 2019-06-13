@@ -355,9 +355,9 @@ private:
      */
     void generateLinearBasedInfill(const int outline_offset, Polygons& result, const int line_distance, const PointMatrix& rotation_matrix, ZigzagConnectorProcessor& zigzag_connector_processor, const bool connected_zigzags, coord_t extra_shift);
 
-void generateConcentricArcInfill(const Polygons& in_outline, Polygons& result_lines, const int line_distance);
+    void generateConcentricArcInfill(const Polygons& in_outline, coord_t outline_offset, Polygons& result_lines, const int line_distance);
 
-void addArcInfill(const Polygons& outline, Polygons& result, const int arc_distance, const AABB boundary, std::vector<std::vector<double>>& cut_list);
+    void addArcInfill(const Polygons& outline, Polygons& result, const AABB boundary, std::vector<std::vector<double>>& cut_list);
 
     /*!
      * 
