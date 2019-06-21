@@ -101,14 +101,16 @@ void ConcentricArcInfill::generateConcentricArcInfill(const Polygons& in_outline
             // rotate line segment so it's horizontal (to simplify finding crossings)
             float horiz_angle = -1 * atan2(p1.Y - p0.Y, p1.X - p0.X);
             PointMatrix horiz_matrix(horiz_angle * 180 / M_PI);
-            Point p0_horiz = horiz_matrix.apply(p0);
-            Point p1_horiz = horiz_matrix.apply(p1);
-            int y_prime = p0_horiz.Y;
+            double p0_h_x = static_cast<double>(p0.X) * horiz_matrix.matrix[0] + static_cast<double>(p0.Y) * horiz_matrix.matrix[1];
+
+            double p1_h_x = static_cast<double>(p1.X) * horiz_matrix.matrix[0] + static_cast<double>(p1.Y) * horiz_matrix.matrix[1];
+            double p1_h_y = static_cast<double>(p1.X) * horiz_matrix.matrix[2] + static_cast<double>(p1.Y) * horiz_matrix.matrix[3];
+            double y_prime = p1_h_y;
 
             for (int scanarc_idx = scanarc_idx0; scanarc_idx != scanarc_idx1 + direction; scanarc_idx += direction)
             {
                 // find all possible intersections between line segment and arc
-                int r = (infill_line_width / 2) + (scanarc_idx * line_distance);
+                double r = (static_cast<double>(infill_line_width) / 2) + static_cast<double>(scanarc_idx * line_distance);
 
                 double x_squared = pow(r, 2) - pow(y_prime, 2);
 
@@ -122,9 +124,9 @@ void ConcentricArcInfill::generateConcentricArcInfill(const Polygons& in_outline
                     int x = 0;
 
                     // is the intersection actually on the line segment?
-                    if (std::min(p0_horiz.X, p1_horiz.X) <= x && std::max(p0_horiz.X, p1_horiz.X) >= x)
+                    if (std::min(p0_h_x, p1_h_x) <= 0 && std::max(p0_h_x, p1_h_x) >= 0)
                     {
-                        Point intersection_orig = horiz_matrix.unapply(Point(x, r));
+                        Point intersection_orig = horiz_matrix.unapply(Point(x, static_cast<int>(r)));
                         double theta = atan2(intersection_orig.Y, intersection_orig.X);// + M_PI;
                         cut_list[scanarc_idx].push_back(theta);
                         crossings_per_scanarc[scanarc_idx].emplace_back(intersection_orig, poly_idx, point_idx);
@@ -133,25 +135,25 @@ void ConcentricArcInfill::generateConcentricArcInfill(const Polygons& in_outline
                 else if (x_squared > 0)
                 {
                     // horizontal line segment could intersect scan arc in two places: +/- x
-                    int pos_x = static_cast<int>(sqrt(x_squared));
-                    int neg_x = -pos_x;
+                    double pos_x = sqrt(x_squared);
+                    double neg_x = -pos_x;
 
-                    int segment_min_x = std::min(p0_horiz.X, p1_horiz.X);
-                    int segment_max_x = std::max(p0_horiz.X, p1_horiz.X);
+                    double segment_min_x = std::min(p0_h_x, p1_h_x);
+                    double segment_max_x = std::max(p0_h_x, p1_h_x);
 
                     // is the positive intersection on the line segment?
-                    if ((segment_min_x <= pos_x) && (segment_max_x >= pos_x))
+                    if ((static_cast<double>(segment_min_x) <= pos_x) && (static_cast<double>(segment_max_x) >= pos_x))
                     {
-                        Point intersection_orig = horiz_matrix.unapply(Point(pos_x, y_prime));
+                        Point intersection_orig = horiz_matrix.unapply(Point(static_cast<int>(pos_x), y_prime));
                         double theta = atan2(intersection_orig.Y, intersection_orig.X);
                         cut_list[scanarc_idx].push_back(theta);
                         crossings_per_scanarc[scanarc_idx].emplace_back(intersection_orig, poly_idx, point_idx);
                     }
                    
                     // is the negative intersection on the line segment?
-                    if ((segment_min_x <= neg_x) && (segment_max_x >= neg_x))
+                    if ((static_cast<double>(segment_min_x) <= neg_x) && (static_cast<double>(segment_max_x) >= neg_x))
                     {
-                        Point intersection_orig = horiz_matrix.unapply(Point(neg_x, y_prime));
+                        Point intersection_orig = horiz_matrix.unapply(Point(static_cast<int>(neg_x), y_prime));
                         double theta = atan2(intersection_orig.Y, intersection_orig.X);
                         cut_list[scanarc_idx].push_back(theta);
                         crossings_per_scanarc[scanarc_idx].emplace_back(intersection_orig, poly_idx, point_idx);
