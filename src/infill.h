@@ -8,6 +8,7 @@
 #include "settings/EnumSettings.h" //For infill types.
 #include "settings/types/AngleDegrees.h"
 #include "utils/IntPoint.h"
+#include "LayerPlan.h"
 
 namespace cura
 {
@@ -106,13 +107,13 @@ public:
      * \param mesh The mesh for which to generate infill (should only be used for non-helper objects)
      * \param[in] cross_fill_provider The cross fractal subdivision decision functor
      */
-    void generate(Polygons& result_polygons, Polygons& result_lines, const SierpinskiFillProvider* cross_fill_provider = nullptr, const SliceMeshStorage* mesh = nullptr);
+    void generate(Polygons& result_polygons, Polygons& result_lines, const LayerIndex layer_idx, const SierpinskiFillProvider* cross_fill_provider = nullptr, const SliceMeshStorage* mesh = nullptr);
 
 private:
     /*!
      * Generate the infill pattern without the infill_multiplier functionality
      */
-    void _generate(Polygons& result_polygons, Polygons& result_lines, const SierpinskiFillProvider* cross_fill_pattern = nullptr, const SliceMeshStorage* mesh = nullptr);
+    void _generate(Polygons& result_polygons, Polygons& result_lines, const LayerIndex layer_idx, const SierpinskiFillProvider* cross_fill_pattern = nullptr, const SliceMeshStorage* mesh = nullptr);
 
     /*!
      * Multiply the infill lines, so that any single line becomes [infill_multiplier] lines next to each other.
@@ -355,7 +356,7 @@ private:
      */
     void generateLinearBasedInfill(const int outline_offset, Polygons& result, const int line_distance, const PointMatrix& rotation_matrix, ZigzagConnectorProcessor& zigzag_connector_processor, const bool connected_zigzags, coord_t extra_shift);
 
-    void generateConcentricArcInfill(const Polygons& in_outline, coord_t outline_offset, Polygons& result_lines, const int line_distance);
+    void generateConcentricArcInfill(const Polygons& in_outline, coord_t outline_offset, Polygons& result_lines, const int line_distance, Point origin);
 
     void addArcInfill(const Polygons& outline, Polygons& result, const AABB boundary, std::vector<std::vector<double>>& cut_list);
 

@@ -63,7 +63,7 @@ bool SpaghettiInfillPathGenerator::processSpaghettiInfill(const SliceDataStorage
             , mesh.settings.get<coord_t>("cross_infill_pocket_size"));
         // cross_fill_patterns is only generated when spaghetti infill is not used,
         // so we pass nullptr here.
-        infill_comp.generate(infill_polygons, infill_lines, nullptr, &mesh);
+        infill_comp.generate(infill_polygons, infill_lines, gcode_layer.getLayerNr(), nullptr, &mesh);
 
         // add paths to plan with a higher flow ratio in order to extrude the required amount.
         const coord_t total_length = infill_polygons.polygonLength() + infill_lines.polyLineLength();

@@ -337,6 +337,10 @@ template<> EFillMethod Settings::get<EFillMethod>(const std::string& key) const
     {
         return EFillMethod::CONCENTRIC_ARC;
     }
+    else if (value == "alternating")
+    {
+        return EFillMethod::ALTERNATING;
+    }
     else //Default.
     {
         return EFillMethod::NONE;
