@@ -48,7 +48,7 @@ bool TopSurface::ironing(const SliceMeshStorage& mesh, const GCodePathConfig& li
     Infill infill_generator(pattern, zig_zaggify_infill, connect_polygons, areas, outline_offset, line_width, line_spacing, infill_overlap, infill_multiplier, direction, layer.z - 10, shift);
     Polygons ironing_polygons;
     Polygons ironing_lines;
-    infill_generator.generate(ironing_polygons, ironing_lines);
+    infill_generator.generate(ironing_polygons, ironing_lines, layer.getLayerNr());
 
     layer.mode_skip_agressive_merge = true;
 

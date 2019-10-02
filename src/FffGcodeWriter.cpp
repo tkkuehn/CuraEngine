@@ -700,7 +700,7 @@ void FffGcodeWriter::processRaft(const SliceDataStorage& storage)
             fill_overlap, infill_multiplier, fill_angle, z, extra_infill_shift,
             wall_line_count, infill_origin, perimeter_gaps, connected_zigzags, use_endpieces, skip_some_zags, zag_skip_count, pocket_size
             );
-        infill_comp.generate(raft_polygons, raftLines);
+        infill_comp.generate(raft_polygons, raftLines, gcode_layer.getLayerNr());
         gcode_layer.addLinesByOptimizer(raftLines, gcode_layer.configs_storage.raft_base_config, SpaceFillType::Lines);
 
         // When we use raft, we need to make sure that all used extruders for this print will get primed on the first raft layer,
@@ -761,7 +761,7 @@ void FffGcodeWriter::processRaft(const SliceDataStorage& storage)
             fill_overlap, infill_multiplier, fill_angle, z, extra_infill_shift,
             wall_line_count, infill_origin, perimeter_gaps, connected_zigzags, use_endpieces, skip_some_zags, zag_skip_count, pocket_size
             );
-        infill_comp.generate(raft_polygons, raftLines);
+        infill_comp.generate(raft_polygons, raftLines, gcode_layer.getLayerNr());
         gcode_layer.addLinesByOptimizer(raftLines, gcode_layer.configs_storage.raft_interface_config, SpaceFillType::Lines, false, 0, 1.0, last_planned_position);
 
         layer_plan_buffer.handle(gcode_layer, gcode);
@@ -818,7 +818,7 @@ void FffGcodeWriter::processRaft(const SliceDataStorage& storage)
             fill_overlap, infill_multiplier, fill_angle, z, extra_infill_shift,
             wall_line_count, infill_origin, perimeter_gaps, connected_zigzags, use_endpieces, skip_some_zags, zag_skip_count, pocket_size
             );
-        infill_comp.generate(raft_polygons, raft_lines);
+        infill_comp.generate(raft_polygons, raft_lines, gcode_layer.getLayerNr());
         gcode_layer.addLinesByOptimizer(raft_lines, gcode_layer.configs_storage.raft_surface_config, SpaceFillType::Lines, false, 0, 1.0, last_planned_position);
 
         layer_plan_buffer.handle(gcode_layer, gcode);
@@ -1406,7 +1406,7 @@ bool FffGcodeWriter::processMultiLayerInfill(const SliceDataStorage& storage, La
                 , infill_line_width, infill_line_distance_here, infill_overlap, infill_multiplier, infill_angle, gcode_layer.z, infill_shift, wall_line_count, infill_origin
                 , perimeter_gaps, connected_zigzags, use_endpieces, skip_some_zags, zag_skip_count
                 , mesh.settings.get<coord_t>("cross_infill_pocket_size"));
-            infill_comp.generate(infill_polygons, infill_lines, mesh.cross_fill_provider, &mesh);
+            infill_comp.generate(infill_polygons, infill_lines, gcode_layer.getLayerNr(), mesh.cross_fill_provider, &mesh);
         }
         if (!infill_lines.empty() || !infill_polygons.empty())
         {
@@ -1519,7 +1519,7 @@ bool FffGcodeWriter::processSingleLayerInfill(const SliceDataStorage& storage, L
             , /*bool skip_some_zags =*/ false
             , /*int zag_skip_count =*/ 0
             , mesh.settings.get<coord_t>("cross_infill_pocket_size"));
-        infill_comp.generate(infill_polygons, infill_lines, mesh.cross_fill_provider, &mesh);
+        infill_comp.generate(infill_polygons, infill_lines, gcode_layer.getLayerNr(), mesh.cross_fill_provider, &mesh);
     }
     if (infill_lines.size() > 0 || infill_polygons.size() > 0)
     {
@@ -1887,7 +1887,7 @@ void FffGcodeWriter::processOutlineGaps(const SliceDataStorage& storage, LayerPl
         EFillMethod::LINES, zig_zaggify_infill, connect_polygons, part.outline_gaps, offset, perimeter_gaps_line_width, perimeter_gaps_line_width, outline_gap_overlap, infill_multiplier, skin_angle, gcode_layer.z, extra_infill_shift,
         wall_line_count, infill_origin, perimeter_gaps, connected_zigzags, use_endpieces, skip_some_zags, zag_skip_count, pocket_size
         );
-    infill_comp.generate(gap_polygons, gap_lines);
+    infill_comp.generate(gap_polygons, gap_lines, gcode_layer.getLayerNr());
 
     if (gap_lines.size() > 0)
     {
@@ -2233,7 +2233,7 @@ void FffGcodeWriter::processSkinPrintFeature(const SliceDataStorage& storage, La
         pattern, zig_zaggify_infill, connect_polygons, area, offset_from_inner_skin_infill, config.getLineWidth(), config.getLineWidth() / skin_density, skin_overlap, infill_multiplier, skin_angle, gcode_layer.z, extra_infill_shift, wall_line_count, infill_origin, perimeter_gaps_output,
         connected_zigzags, use_endpieces, skip_some_zags, zag_skip_count, pocket_size
         );
-    infill_comp.generate(skin_polygons, skin_lines);
+    infill_comp.generate(skin_polygons, skin_lines, gcode_layer.getLayerNr());
 
     // add paths
     if (skin_polygons.size() > 0 || skin_lines.size() > 0)
@@ -2298,7 +2298,7 @@ void FffGcodeWriter::processPerimeterGaps(const SliceDataStorage& storage, Layer
     Infill infill_comp(
         EFillMethod::LINES, zig_zaggify_infill, connect_polygons, perimeter_gaps, offset, perimeter_gaps_line_width, perimeter_gaps_line_width, skin_overlap, infill_multiplier, perimeter_gaps_angle, gcode_layer.z, extra_infill_shift,
         wall_line_count, infill_origin, perimeter_gaps_polyons, connected_zigzags, use_endpieces, skip_some_zags, zag_skip_count, pocket_size);
-    infill_comp.generate(gap_polygons, gap_lines);
+    infill_comp.generate(gap_polygons, gap_lines, gcode_layer.getLayerNr());
     if (gap_lines.size() > 0)
     {
         added_something = true;
@@ -2486,7 +2486,7 @@ bool FffGcodeWriter::processSupportInfill(const SliceDataStorage& storage, Layer
                                    support_line_distance_here, current_support_infill_overlap, infill_multiplier, support_infill_angle, gcode_layer.z, support_shift, wall_line_count, infill_origin,
                                    perimeter_gaps, infill_extruder.settings.get<bool>("support_connect_zigzags"), use_endpieces,
                                    skip_some_zags, zag_skip_count, pocket_size);
-                infill_comp.generate(support_polygons, support_lines, storage.support.cross_fill_provider);
+                infill_comp.generate(support_polygons, support_lines, gcode_layer.getLayerNr(), storage.support.cross_fill_provider);
                 if (support_area_offset > 0)
                 {
                     // Only polygons (not lines), because this only happens in the case of concentric on layer 0 (if support brim is enabled).
@@ -2576,7 +2576,7 @@ bool FffGcodeWriter::addSupportRoofsToGCode(const SliceDataStorage& storage, Lay
         );
     Polygons roof_polygons;
     Polygons roof_lines;
-    roof_computation.generate(roof_polygons, roof_lines);
+    roof_computation.generate(roof_polygons, roof_lines, gcode_layer.getLayerNr());
     if ((gcode_layer.getLayerNr() == 0 && wall.empty()) || (gcode_layer.getLayerNr() > 0 && roof_polygons.empty() && roof_lines.empty()))
     {
         return false; //We didn't create any support roof.
@@ -2643,7 +2643,7 @@ bool FffGcodeWriter::addSupportBottomsToGCode(const SliceDataStorage& storage, L
         );
     Polygons bottom_polygons;
     Polygons bottom_lines;
-    bottom_computation.generate(bottom_polygons, bottom_lines);
+    bottom_computation.generate(bottom_polygons, bottom_lines, gcode_layer.getLayerNr());
     if (bottom_polygons.empty() && bottom_lines.empty())
     {
         return false;

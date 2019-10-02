@@ -43,7 +43,7 @@ static inline int computeScanSegmentIdx(int x, int line_width)
 
 namespace cura {
 
-void Infill::generate(Polygons& result_polygons, Polygons& result_lines, const SierpinskiFillProvider* cross_fill_provider, const SliceMeshStorage* mesh)
+void Infill::generate(Polygons& result_polygons, Polygons& result_lines, LayerIndex layer_idx, const SierpinskiFillProvider* cross_fill_provider, const SliceMeshStorage* mesh)
 {
     coord_t outline_offset_raw = outline_offset;
     outline_offset -= wall_line_count * infill_line_width; // account for extra walls
@@ -57,7 +57,7 @@ void Infill::generate(Polygons& result_polygons, Polygons& result_lines, const S
         }
         Polygons generated_result_polygons;
         Polygons generated_result_lines;
-        _generate(generated_result_polygons, generated_result_lines, cross_fill_provider, mesh);
+        _generate(generated_result_polygons, generated_result_lines, layer_idx, cross_fill_provider, mesh);
         zig_zaggify = zig_zaggify_real;
         multiplyInfill(generated_result_polygons, generated_result_lines);
         result_polygons.add(generated_result_polygons);
@@ -69,7 +69,7 @@ void Infill::generate(Polygons& result_polygons, Polygons& result_lines, const S
         //So make sure we provide it with a Polygons that is safe to clear and only add stuff to result_lines.
         Polygons generated_result_polygons;
         Polygons generated_result_lines;
-        _generate(generated_result_polygons, generated_result_lines, cross_fill_provider, mesh);
+        _generate(generated_result_polygons, generated_result_lines, layer_idx, cross_fill_provider, mesh);
         result_polygons.add(generated_result_polygons);
         result_lines.add(generated_result_lines);
     }
@@ -94,7 +94,7 @@ void Infill::generate(Polygons& result_polygons, Polygons& result_lines, const S
     }
 }
 
-void Infill::_generate(Polygons& result_polygons, Polygons& result_lines, const SierpinskiFillProvider* cross_fill_provider, const SliceMeshStorage* mesh)
+void Infill::_generate(Polygons& result_polygons, Polygons& result_lines, LayerIndex layer_idx, const SierpinskiFillProvider* cross_fill_provider, const SliceMeshStorage* mesh)
 {
     if (in_outline.empty()) return;
     if (line_distance == 0) return;
@@ -154,8 +154,24 @@ void Infill::_generate(Polygons& result_polygons, Polygons& result_lines, const 
         generateGyroidInfill(result_lines);
         break;
     case EFillMethod::CONCENTRIC_ARC:
-        generateConcentricArcInfill(in_outline, outline_offset, result_lines, line_distance);
+        generateConcentricArcInfill(in_outline, outline_offset, result_lines, line_distance, infill_origin);
         break;
+    case EFillMethod::ALTERNATING:
+        {
+        coord_t origin_distance = 5000;
+        if (layer_idx % 2 == 0)
+        {
+            Point new_origin(infill_origin.X + origin_distance, infill_origin.Y);
+            generateConcentricArcInfill(in_outline, outline_offset, result_lines, line_distance, new_origin);
+            //generateLineInfill(result_lines, line_distance, fill_angle, 0);
+        }
+        else
+        {
+            Point new_origin(infill_origin.X - origin_distance, infill_origin.Y);
+            generateConcentricArcInfill(in_outline, outline_offset, result_lines, line_distance, new_origin);
+            //generateConcentricArcInfill(in_outline, outline_offset, result_lines, line_distance, infill_origin);
+        }
+        }
     default:
         logError("Fill pattern has unknown value.\n");
         break;
@@ -860,9 +876,9 @@ void Infill::connectLines(Polygons& result_lines)
     }
 }
 
-void Infill::generateConcentricArcInfill(const Polygons& in_outline, coord_t outline_offset, Polygons& result_lines, const int line_distance)
+void Infill::generateConcentricArcInfill(const Polygons& in_outline, coord_t outline_offset, Polygons& result_lines, const int line_distance, Point origin)
 {
-    ConcentricArcInfill::generateConcentricArcInfill(in_outline, outline_offset, result_lines, line_distance, infill_origin, infill_line_width);
+    ConcentricArcInfill::generateConcentricArcInfill(in_outline, outline_offset, result_lines, line_distance, origin, infill_line_width);
 }
 
 void Infill::addArcInfill(const Polygons& outline, Polygons& result, const AABB boundary, std::vector<std::vector<double>>& cut_list)

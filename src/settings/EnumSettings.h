@@ -28,6 +28,7 @@ enum class EFillMethod
     CROSS_3D,
     GYROID,
     CONCENTRIC_ARC,
+    ALTERNATING,
     NONE
 };
 
