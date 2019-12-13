@@ -29,7 +29,7 @@ enum class EFillMethod
     GYROID,
     CONCENTRIC_ARC,
     ALTERNATING,
-    NONE
+    NONE  // NOTE: Should remain last! (May be used in testing to enumarate the enum.)
 };
 
 /*!
