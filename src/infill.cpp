@@ -157,22 +157,31 @@ void Infill::_generate(Polygons& result_polygons, Polygons& result_lines, LayerI
     case EFillMethod::CONCENTRIC_ARC:
         generateConcentricArcInfill(in_outline, outline_offset, result_lines, line_distance, infill_origin);
         break;
-    case EFillMethod::ALTERNATING:
+    case EFillMethod::ARC_ARC:
         {
         coord_t origin_distance = 5000;
         if (layer_idx % 2 == 0)
         {
             Point new_origin(infill_origin.X + origin_distance, infill_origin.Y);
             generateConcentricArcInfill(in_outline, outline_offset, result_lines, line_distance, new_origin);
-            //generateLineInfill(result_lines, line_distance, fill_angle, 0);
         }
         else
         {
             Point new_origin(infill_origin.X - origin_distance, infill_origin.Y);
             generateConcentricArcInfill(in_outline, outline_offset, result_lines, line_distance, new_origin);
-            //generateConcentricArcInfill(in_outline, outline_offset, result_lines, line_distance, infill_origin);
         }
         }
+        break;
+    case EFillMethod::LINE_ARC:
+        if (layer_idx % 2 == 0)
+        {
+            generateLineInfill(result_lines, line_distance, fill_angle, 0);
+        }
+        else
+        {
+            generateConcentricArcInfill(in_outline, outline_offset, result_lines, line_distance, infill_origin);
+        }
+        break;
     default:
         logError("Fill pattern has unknown value.\n");
         break;
@@ -456,7 +465,7 @@ void Infill::addLineInfill(Polygons& result, const PointMatrix& rotation_matrix,
                 continue;
             }
             //We have to create our own lines when they are not created by the method connectLines.
-            if (!zig_zaggify || pattern == EFillMethod::ZIG_ZAG || pattern == EFillMethod::LINES)
+            if (!zig_zaggify || pattern == EFillMethod::ZIG_ZAG || pattern == EFillMethod::LINES || pattern == EFillMethod::LINE_ARC)
             {
                 result.addLine(rotation_matrix.unapply(Point(x, crossings[crossing_idx])), rotation_matrix.unapply(Point(x, crossings[crossing_idx + 1])));
             }

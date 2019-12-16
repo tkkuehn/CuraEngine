@@ -28,7 +28,8 @@ enum class EFillMethod
     CROSS_3D,
     GYROID,
     CONCENTRIC_ARC,
-    ALTERNATING,
+    ARC_ARC,
+    LINE_ARC,
     NONE  // NOTE: Should remain last! (May be used in testing to enumarate the enum.)
 };
 

@@ -317,9 +317,13 @@ template<> EFillMethod Settings::get<EFillMethod>(const std::string& key) const
     {
         return EFillMethod::CONCENTRIC;
     }
-    else if (value == "alternating")
+    else if (value == "arc_arc")
     {
-        return EFillMethod::ALTERNATING;
+        return EFillMethod::ARC_ARC;
+    }
+    else if (value == "line_arc")
+    {
+        return EFillMethod::LINE_ARC;
     }
     else if (value == "zigzag")
     {
